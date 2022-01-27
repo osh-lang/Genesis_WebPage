@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	<bean class="life.seunghyun.security.CustomAccessDeniedHandler" id="accessDeniedHandler"></bean>
+	<bean class="life.seunghyun.security.CustomNoOpPasswordEncoder" id="passwordEncoder"></bean>
+	<bean class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" id="BCryptPasswordEncoder"></bean>
+	<bean class="life.seunghyun.security.CustomUserDetailsService" id="customUserDetailsService"/>
+	<security:http>
+		<security:intercept-url pattern="/sample/all" access="permitAll"/>
+		<security:intercept-url pattern="/sample/member" access="hasRole('ROLE_MEMBER')"/>
+		<security:intercept-url pattern="/sample/admin" access="hasRole('ROLE_ADMIN')"/>
+		<security:form-login login-page="/customLogin" />
+<!-- 		<security:access-denied-handler error-page="/accessError"/> -->
+		<security:access-denied-handler ref="accessDeniedHandler"/>
+		<security:logout logout-url="/customLogout" delete-cookies="JSESSIONID,remember-me" />
+		<security:remember-me data-source-ref="dataSource" token-validity-seconds="604800"/>
+		<!-- <security:csrf disabled="true"/> -->
+	</security:http>
+	<security:authentication-manager>
+		<security:authentication-provider user-service-ref="customUserDetailsService">
+			<!-- <security:user-service>
+				<security:user name="member" password="{noop}member" authorities="ROLE_MEMBER"/>
+				<security:user name="admin" password="{noop}admin" authorities="ROLE_MEMBER, ROLE_ADMIN"/>
+			</security:user-service> -->
+			<!-- <security:jdbc-user-service data-source-ref="dataSource"
+				users-by-username-query="SELECT USERID USERNAME, USERPW PASSWORD, ENABLED FROM TBL_MEMBER WHERE USERID = ?"
+				authorities-by-username-query="SELECT USERID USERNAME, AUTH AUTHORITY FROM TBL_MEMBER_AUTH WHERE USERID = ?"
+			/> -->
+			<security:password-encoder ref="BCryptPasswordEncoder"/>
+<!-- 			<security:password-encoder ref="passwordEncoder"/> -->
+		</security:authentication-provider>
+	</security:authentication-manager>
+
+
+</beans>
